@@ -1,0 +1,66 @@
+name: FxQl CI/CD Workflow
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checkout the repository
+    - uses: actions/checkout@v4
+    
+    # Cache Node.js dependencies
+    - name: Cache Node Modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    # Setup Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    # Install dependencies
+    - name: Install Dependencies
+      run: npm install
+    
+    # Run linter
+    - name: Run Linter
+      run: npm run lint
+    
+    # Run tests with coverage
+    - name: Run Tests
+      run: npm run test:coverage
+    
+    # Build the application
+    - name: Build Application
+      run: npm run build
+    
+    # Docker build and push
+    - name: Build and Push Docker Image
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        docker build -t $DOCKER_USERNAME/fxql:${{ github.sha }} -t $DOCKER_USERNAME/fxql:latest .
+        docker push $DOCKER_USERNAME/fxql:${{ github.sha }}
+        docker push $DOCKER_USERNAME/fxql:latest
+    
+    # Deploy to Railway
+    - name: Deploy to Railway
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        npm install -g @railway/cli
+        railway login --token $RAILWAY_TOKEN
+        railway up --detach

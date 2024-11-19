@@ -1,23 +1,41 @@
-# Use official Node.js image
-FROM node:18-alpine
+# Stage 1: Build
+FROM node:18-alpine AS build
+
+# Install build tools
+RUN apk add --no-cache bash git
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json for dependency installation
 COPY package*.json ./
 
-# Install dependencies
-RUN yarn install
+# Install dependencies (only required for build)
+RUN npm install
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN yarn build
+RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# Stage 2: Production
+FROM node:18-alpine
 
-# Start the server
-CMD ["yarn", "run", "start:prod"]
+# Set working directory
+WORKDIR /app
+
+# Copy production dependencies
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm install --production
+
+# Copy built application from the build stage
+COPY --from=build /app/dist ./dist
+
+# Expose application port
+EXPOSE 4000
+
+# Start the application
+CMD ["node", "dist/index.js"]
