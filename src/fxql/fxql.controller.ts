@@ -1,8 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-} from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { FxqlService } from './fxql.service';
 import { CreateFxqlDto } from './dto/create-fxql.dto';
 
