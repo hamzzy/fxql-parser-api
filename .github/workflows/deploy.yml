@@ -65,6 +65,7 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/fxql:latest
     
     # Deploy to Railway
+     # Deploy to Railway
     - name: Install Railway
       run: npm i -g @railway/cli
 
