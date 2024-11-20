@@ -1,41 +1,27 @@
 # Stage 1: Build
-FROM node:18-alpine AS build
+FROM node:18-alpine AS builder
 
-# Install build tools
-RUN apk add --no-cache bash git
-
-# Set working directory
+# Create app directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json for dependency installation
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
+COPY prisma ./prisma/
 
-# Install dependencies (only required for build)
+# Install app dependencies
 RUN npm install
 
-# Copy source code
 COPY . .
 
-# Build the application
 RUN npm run build
 
-# Stage 2: Production
-FROM node:18-alpine
+FROM node:14
 
-# Set working directory
-WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
-# Copy production dependencies
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm install --production
-
-# Copy built application from the build stage
-COPY --from=build /app/dist ./dist
-
-# Expose application port
-EXPOSE 4000
-
-# Start the application
-CMD ["node", "dist/index.js"]
+EXPOSE 3000
+# 👇 new migrate and start app script
+CMD [  "npm", "run", "start:migrate:prod" ]
