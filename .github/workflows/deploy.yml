@@ -47,7 +47,7 @@ jobs:
 
     - name: Debug Secrets
       run: |   
-          echo "Docker Username: ${{ secrets.DOCKER_USERNAME }}"
+          echo "Docker Username: ${{ secrets.RAILWAY_TOKEN}}"
 
     # Docker build and push
     - name: Log in to Docker Hub
