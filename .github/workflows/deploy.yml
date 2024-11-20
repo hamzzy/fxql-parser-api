@@ -2,9 +2,9 @@ name: FxQl CI/CD Workflow
 
 on:
   push:
-    branches: [ "deploy" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "deploy" ]
+    branches: [ "main" ]
 
 jobs:
   test-build-deploy:
