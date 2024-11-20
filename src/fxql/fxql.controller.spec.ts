@@ -10,16 +10,16 @@ describe('FxqlController', () => {
   beforeEach(async () => {
     // Mock FxqlService
     mockFxqlService = {
-      handleFXQL: jest.fn()
+      handleFXQL: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FxqlController],
       providers: [
-        { 
-          provide: FxqlService, 
-          useValue: mockFxqlService 
-        }
+        {
+          provide: FxqlService,
+          useValue: mockFxqlService,
+        },
       ],
     }).compile();
 
@@ -41,31 +41,35 @@ describe('FxqlController', () => {
           DestinationCurrency: 'GBP',
           SellPrice: 0.85,
           BuyPrice: 100,
-          CapAmount: 10000
-        }
-      ]
+          CapAmount: 10000,
+        },
+      ],
     };
 
     (mockFxqlService.handleFXQL as jest.Mock).mockResolvedValue(mockResponse);
 
-    const result = await controller.parseFXQL({ FXQL: 'USD-GBP { BUY 100 SELL 0.85 CAP 10000 }' });
+    const result = await controller.parseFXQL({
+      FXQL: 'USD-GBP { BUY 100 SELL 0.85 CAP 10000 }',
+    });
 
     expect(result).toEqual(mockResponse);
-    expect(mockFxqlService.handleFXQL).toHaveBeenCalledWith('USD-GBP { BUY 100 SELL 0.85 CAP 10000 }');
+    expect(mockFxqlService.handleFXQL).toHaveBeenCalledWith(
+      'USD-GBP { BUY 100 SELL 0.85 CAP 10000 }',
+    );
   });
 
   it('should handle service errors', async () => {
     const errorResponse = {
       message: 'Invalid FXQL statement',
-      code: 'FXQL-400'
+      code: 'FXQL-400',
     };
 
     (mockFxqlService.handleFXQL as jest.Mock).mockRejectedValue(
-      new BadRequestException(errorResponse)
+      new BadRequestException(errorResponse),
     );
 
     await expect(
-      controller.parseFXQL({ FXQL: 'INVALID STATEMENT' })
+      controller.parseFXQL({ FXQL: 'INVALID STATEMENT' }),
     ).rejects.toThrow(BadRequestException);
   });
 });

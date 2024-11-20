@@ -46,7 +46,9 @@ describe('FxqlService', () => {
       errors: ['Invalid FXQL statement'],
     });
 
-    await expect(service.handleFXQL('INVALID FXQL')).rejects.toThrow(BadRequestException);
+    await expect(service.handleFXQL('INVALID FXQL')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should throw an error if more than 1000 statements are provided', async () => {
@@ -59,7 +61,9 @@ describe('FxqlService', () => {
       errors: [],
     });
 
-    await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(BadRequestException);
+    await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should save parsed statements to the database and return a success response', async () => {
@@ -79,8 +83,12 @@ describe('FxqlService', () => {
     });
 
     // Mock transaction and database interaction
-    (prismaService.$transaction as jest.Mock).mockImplementation(async (callback) => callback(prismaService));
-    (prismaService.fXQLStatement.createMany as jest.Mock).mockResolvedValueOnce(undefined);
+    (prismaService.$transaction as jest.Mock).mockImplementation(
+      async (callback) => callback(prismaService),
+    );
+    (prismaService.fXQLStatement.createMany as jest.Mock).mockResolvedValueOnce(
+      undefined,
+    );
 
     const result = await service.handleFXQL('VALID FXQL');
     expect(result).toEqual({
@@ -124,10 +132,14 @@ describe('FxqlService', () => {
     });
 
     // Mock transaction to simulate a database error
-    (prismaService.$transaction as jest.Mock).mockImplementationOnce(async () => {
-      throw new Error('Database error');
-    });
+    (prismaService.$transaction as jest.Mock).mockImplementationOnce(
+      async () => {
+        throw new Error('Database error');
+      },
+    );
 
-    await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(BadRequestException);
+    await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });
