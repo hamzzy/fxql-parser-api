@@ -2,9 +2,9 @@ name: FxQl CI/CD Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "deploy" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "deploy" ]
 
 jobs:
   test-build-deploy:
@@ -60,8 +60,8 @@ jobs:
       # Build and push Docker image
     - name: Build and Push Docker Image
       run: |
-        docker build -t ${{ secrets.railway.DOCKER_USERNAME }}/fxql:${{ github.sha }} -t ${{ secrets.DOCKER_USERNAME }}/fxql:latest .
-        docker push ${{ secrets.railway.DOCKER_USERNAME }}/fxql:${{ github.sha }}
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/fxql:${{ github.sha }} -t ${{ secrets.DOCKER_USERNAME }}/fxql:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/fxql:${{ github.sha }}
         docker push ${{ secrets.DOCKER_USERNAME }}/fxql:latest
     
     # Deploy to Railway
