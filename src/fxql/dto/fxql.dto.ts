@@ -7,8 +7,8 @@ export class FxqlDto {
   @ApiProperty({
     description: '',
     minimum: 1,
-    default: "",
-    type: String
+    default: '',
+    type: String,
   })
   FXQL: string;
 }

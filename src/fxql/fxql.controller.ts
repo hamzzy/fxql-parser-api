@@ -3,7 +3,7 @@ import { FxqlService } from './fxql.service';
 import { FxqlDto } from './dto/fxql.dto';
 import { FXQLResponse } from './fxql.response';
 
-@Controller('fxql')
+@Controller('fxql-statements')
 export class FxqlController {
   constructor(private readonly fxqlService: FxqlService) {}
 
