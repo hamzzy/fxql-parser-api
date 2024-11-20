@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { parseFXQLStatements } from './fxql.parser';
 import { FXQLResponse } from './fxql.response';
 

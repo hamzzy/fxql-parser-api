@@ -1,9 +1,9 @@
 enum TokenType {
-  IDENTIFIER = 'IDENTIFIER',
+  IDENTIFIER = 'alphabet',
   NUMBER = 'NUMBER',
   LEFT_BRACE = 'LEFT_BRACE',
   RIGHT_BRACE = 'RIGHT_BRACE',
-  DASH = 'DASH',
+  DASH = 'negative',
   EOF = 'EOF',
 }
 
@@ -42,7 +42,7 @@ class ParserError extends Error {
     public line: number,
     public column: number,
   ) {
-    super(`Error at line ${line}, column ${column}: ${message}`);
+    super(`${message}`);
     this.name = 'ParserError';
   }
 }
