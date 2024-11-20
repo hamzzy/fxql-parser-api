@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { parseFXQLStatements } from './fxql.parser';
-import { FXQLResponse } from './utils';
+import { FXQLResponse } from './fxql.response';
 
 @Injectable()
 export class FxqlService {
@@ -22,9 +22,8 @@ export class FxqlService {
     // Check for parsing errors
     if (parseResult.errors.length > 0) {
       // Return the first error
-      const firstError = parseResult.errors[0];
+      const firstError = parseResult.errors;
       throw new BadRequestException({
-        message: firstError.error || 'Error parsing FXQL statement',
         code: 'FXQL-400',
         details: firstError,
       });

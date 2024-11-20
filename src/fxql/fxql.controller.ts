@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { FxqlService } from './fxql.service';
 import { FxqlDto } from './dto/fxql.dto';
-import { FXQLResponse } from './utils';
+import { FXQLResponse } from './fxql.response';
 
 @Controller('fxql')
 export class FxqlController {
