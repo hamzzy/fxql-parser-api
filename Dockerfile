@@ -7,13 +7,13 @@ RUN apk add --no-cache bash git
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json for dependency installation
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies (only required for build)
-RUN npm install
+# Install all dependencies (production + dev)
+RUN npm ci
 
-# Copy source code
+# Copy the entire source code
 COPY . .
 
 # Build the application
@@ -25,11 +25,12 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy production dependencies
-COPY package*.json ./
+# Install npm explicitly (if missing in alpine image)
+RUN apk add --no-cache nodejs npm
 
-# Install only production dependencies
-RUN npm install --production
+# Copy only production dependencies
+COPY package*.json ./
+RUN npm ci --production
 
 # Copy built application from the build stage
 COPY --from=build /app/dist ./dist
