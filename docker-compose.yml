@@ -1,6 +1,7 @@
 version: '3.8'
 services:
-  fxql-parser:
+  fx:
+    container_name: fxql-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,8 +9,10 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - "4000:4000"
-    command: "make migrate-dev"
+      - "3000:3000"
+    env_file:
+      - .env
+    # command: "make migrate-dev"
     depends_on:
       db:
         condition: service_healthy

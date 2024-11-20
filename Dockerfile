@@ -15,7 +15,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:14
+FROM node:18-alpine 
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
