@@ -30,7 +30,7 @@ RUN apk add --no-cache nodejs npm
 
 # Copy only production dependencies
 COPY package*.json ./
-RUN npm ci --production
+RUN npm ci
 
 # Copy built application from the build stage
 COPY --from=build /app/dist ./dist
