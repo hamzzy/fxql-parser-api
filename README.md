@@ -89,15 +89,22 @@ npm run start:prod
 # or
 yarn start:prod
 ```
+## Docker 
 
+```bash
+# Build Docker image
+docker compose up
+
+```
 ## API Documentation
 
-### Endpoint: `POST /api/fxql-statements`
+### Documentation : https://fxql-parser.up.railway.app/api
+### Endpoint: `POST https://fxql-parser.up.railway.app/fxql-statements`
 
 #### Request Payload
 ```json
 {
-  "FXQL": "USD-GBP { BUY 100 SELL 0.85 CAP 10000 }\nEUR-JPY { BUY 50 SELL 145.20 CAP 50000 }"
+  "FXQL": "USD-GBP {\\n  BUY 0.85\\n  SELL 0.90\\n  CAP 10000\\n}"
 }
 ```
 
@@ -165,24 +172,6 @@ yarn test
 npm run test:cov
 # or
 yarn test:cov
-```
-
-### Test Coverage
-- Parser validation
-- Service logic
-- Controller interactions
-- Error scenario handling
-
-## Deployment
-
-### Docker Deployment
-
-```bash
-# Build Docker image
-docker build -t fxql-parser .
-
-# Run Docker container
-docker run -p 3000:3000 fxql-parser
 ```
 
 ## Troubleshooting
