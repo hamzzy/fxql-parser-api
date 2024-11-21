@@ -5,7 +5,6 @@ import { parseFXQLStatements } from './fxql.parser';
 import { v4 as uuidv4 } from 'uuid';
 import { FXQLEntry, FXQLResponse } from './fxql.response';
 
-
 @Injectable()
 export class FxqlService {
   constructor(
@@ -23,10 +22,13 @@ export class FxqlService {
 
     const parseResult = parseFXQLStatements(fxql);
     if (parseResult.errors.length > 0) {
-      this.logger.error({
-        requestId,
-        errors: parseResult.errors,
-      }, 'Parsing errors encountered');
+      this.logger.error(
+        {
+          requestId,
+          errors: parseResult.errors,
+        },
+        'Parsing errors encountered',
+      );
       throw new BadRequestException({
         code: 'FXQL-400-PARSE',
         details: parseResult.errors.map((err) => ({
@@ -39,10 +41,13 @@ export class FxqlService {
 
     const currencyEntries = this.transformParsedStatements(parseResult.success);
     if (currencyEntries.length > 1000) {
-      this.logger.warn({
-        requestId,
-        count: currencyEntries.length,
-      }, 'Exceeded maximum statement count');
+      this.logger.warn(
+        {
+          requestId,
+          count: currencyEntries.length,
+        },
+        'Exceeded maximum statement count',
+      );
       throw new BadRequestException({
         message: 'Maximum 1000 currency pairs per request',
         code: 'FXQL-400-LIMIT',
@@ -52,7 +57,10 @@ export class FxqlService {
     const savedEntries = await this.saveToDatabase(currencyEntries);
     const paginatedResult = this.paginate(savedEntries, 1, 100);
 
-    this.logger.info({ requestId, paginatedResult }, 'FXQL request processed successfully');
+    this.logger.info(
+      { requestId, paginatedResult },
+      'FXQL request processed successfully',
+    );
     return {
       message: 'FXQL Statement Parsed Successfully.',
       code: 'FXQL-200',
@@ -81,45 +89,54 @@ export class FxqlService {
     }));
   }
 
-  private paginate(data: FXQLEntry[], page: number, limit: number): FXQLEntry[] {
+  private paginate(
+    data: FXQLEntry[],
+    page: number,
+    limit: number,
+  ): FXQLEntry[] {
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     return data.slice(startIndex, endIndex);
   }
 
-  private async saveToDatabase(currencyEntries: FXQLEntry[]): Promise<FXQLEntry[]> {
+  private async saveToDatabase(
+    currencyEntries: FXQLEntry[],
+  ): Promise<FXQLEntry[]> {
     try {
       return await this.prisma.$transaction(async (prisma) => {
         // Create entries and return the saved entries with their database IDs
         const savedEntries = await Promise.all(
           currencyEntries.map(async (entry) => {
-            const savedEntry = await prisma.fXQLStatement.create({ 
+            const savedEntry = await prisma.fXQLStatement.create({
               data: {
                 sourceCurrency: entry.SourceCurrency,
                 destinationCurrency: entry.DestinationCurrency,
                 buyPrice: entry.BuyPrice,
                 sellPrice: entry.SellPrice,
-                capAmount: entry.CapAmount
-              } 
+                capAmount: entry.CapAmount,
+              },
             });
-            
+
             return {
               EntryId: savedEntry.id, // Assuming the database model has an 'id' field
               SourceCurrency: savedEntry.sourceCurrency,
               DestinationCurrency: savedEntry.destinationCurrency,
               BuyPrice: savedEntry.buyPrice,
               SellPrice: savedEntry.sellPrice,
-              CapAmount: savedEntry.capAmount
+              CapAmount: savedEntry.capAmount,
             };
-          })
+          }),
         );
 
         return savedEntries;
       });
     } catch (error) {
-      this.logger.error({
-        error: error.message,
-      }, 'Database transaction failed');
+      this.logger.error(
+        {
+          error: error.message,
+        },
+        'Database transaction failed',
+      );
       throw new BadRequestException({
         message: 'Error saving FXQL statements to database',
         code: 'FXQL-500',

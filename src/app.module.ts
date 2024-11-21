@@ -21,7 +21,7 @@ import { LoggerModule } from 'nestjs-pino';
           },
         },
       },
-    }),    
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
