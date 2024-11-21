@@ -3,7 +3,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../database/prisma.service';
 import { parseFXQLStatements } from './fxql.parser';
 import { v4 as uuidv4 } from 'uuid';
-import { FXQLEntry, FXQLResponse } from './fxql.response';
+import { FXQLEntry, FXQLResponse } from './fxql.types';
 
 @Injectable()
 export class FxqlService {
@@ -63,7 +63,7 @@ export class FxqlService {
     );
     return {
       message: 'FXQL Statement Parsed Successfully.',
-      code: 'FXQL-200',
+      code: 'FXQL-201',
       data: paginatedResult,
     };
   }

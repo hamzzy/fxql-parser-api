@@ -1,51 +1,11 @@
-enum TokenType {
-  IDENTIFIER = 'alphabet',
-  NUMBER = 'NUMBER',
-  LEFT_BRACE = 'LEFT_BRACE',
-  RIGHT_BRACE = 'RIGHT_BRACE',
-  DASH = 'negative',
-  EOF = 'EOF',
-}
-
-interface Token {
-  type: TokenType;
-  value: string;
-  line: number;
-  column: number;
-}
-
-interface Amount {
-  value: number;
-}
-
-interface FXQLStatement {
-  baseCurrency: string;
-  quoteCurrency: string;
-  buyAmount?: Amount;
-  sellAmount?: Amount;
-  capAmount?: Amount;
-}
-
-interface ParsingResult {
-  success: FXQLStatement[];
-  errors: {
-    input: string;
-    error: string;
-    line?: number;
-    column?: number;
-  }[];
-}
-
-class ParserError extends Error {
-  constructor(
-    message: string,
-    public line: number,
-    public column: number,
-  ) {
-    super(`${message}`);
-    this.name = 'ParserError';
-  }
-}
+import {
+  Amount,
+  FXQLStatement,
+  ParserError,
+  ParsingResult,
+  Token,
+  TokenType,
+} from './fxql.types';
 
 class Lexer {
   private position: number = 0;
@@ -60,6 +20,8 @@ class Lexer {
       .replace(/\\n/g, '\n') // Replace escaped newlines with actual newlines
       .replace(/\r\n/g, '\n') // Normalize line breaks
       .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
+      .replace(/\\n/g, '\n') // Replace escaped newlines with actual newlines
+      .replace(/\r\n/g, '\n') // Normalize line breaks
       .trim();
 
     this.currentChar =
@@ -327,10 +289,10 @@ class Parser {
   }
 
   private parseCurrencyPair(): [string, string] {
-    const baseCurrency = this.currentToken.value.toUpperCase();
+    const baseCurrency = this.currentToken.value;
     this.eat(TokenType.IDENTIFIER);
     this.eat(TokenType.DASH);
-    const quoteCurrency = this.currentToken.value.toUpperCase();
+    const quoteCurrency = this.currentToken.value;
     this.eat(TokenType.IDENTIFIER);
     return [baseCurrency, quoteCurrency];
   }

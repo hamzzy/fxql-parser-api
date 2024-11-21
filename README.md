@@ -53,6 +53,9 @@ yarn install
 Create a `.env` file in the project root with the following variables:
 
 ```env
+POSTGRES_NAME=""
+POSTGRES_USER=""
+POSTGRES_PASSWORD=""
 # Database Connection
 DATABASE_URL="postgresql://username:password@localhost:5432/fxql_db?schema=public"
 
@@ -86,13 +89,6 @@ npm run start:prod
 # or
 yarn start:prod
 ```
-
-## Environmental Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | - | Yes |
-| `PORT` | Application listening port | 3000 | No |
 
 ## API Documentation
 

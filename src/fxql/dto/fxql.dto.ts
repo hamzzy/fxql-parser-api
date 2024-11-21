@@ -5,10 +5,11 @@ export class FxqlDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    description: '',
-    minimum: 1,
-    default: '',
+    description:
+      'The FXQL statement(s) to be processed. Each statement should follow the specified syntax format.', // Detailed description
+    example: 'USD-GBP {\\n  BUY 100\\n  SELL 200\\n  CAP 93800\\n}', // Valid example
     type: String,
+    required: true, // Marks the property as required in Swagger
   })
   FXQL: string;
 }
