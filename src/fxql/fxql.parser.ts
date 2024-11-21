@@ -168,7 +168,14 @@ class Lexer {
 
 class Parser {
   private currentToken: Token;
-  private readonly VALID_CURRENCIES = ['USD', 'GBP', 'EUR', 'JPY', 'NZD'];
+  private readonly VALID_CURRENCIES = [
+    'USD',
+    'GBP',
+    'EUR',
+    'JPY',
+    'NZD',
+    'NGN',
+  ];
 
   constructor(private lexer: Lexer) {
     this.currentToken = this.lexer.getNextToken();
@@ -290,10 +297,20 @@ class Parser {
 
   private parseCurrencyPair(): [string, string] {
     const baseCurrency = this.currentToken.value;
+    this.validateCurrency(baseCurrency, 'base');
     this.eat(TokenType.IDENTIFIER);
     this.eat(TokenType.DASH);
     const quoteCurrency = this.currentToken.value;
+    this.validateCurrency(quoteCurrency, 'quote');
     this.eat(TokenType.IDENTIFIER);
+
+    if (this.currentToken.type !== TokenType.LEFT_BRACE) {
+      throw new ParserError(
+        `Expected a single space after the currency pair.`,
+        this.currentToken.line,
+        this.currentToken.column,
+      );
+    }
     return [baseCurrency, quoteCurrency];
   }
 
