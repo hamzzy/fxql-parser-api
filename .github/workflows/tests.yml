@@ -1,0 +1,38 @@
+name: Tests
+on: pull_request
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cache Node.js dependencies
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Setup Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Run linter
+      - name: Run Linter
+        run: npm run lint
+
+      # Run tests with coverage
+      - name: Run Tests
+        run: npm run test
+
+      # Build the application
+      - name: Build Application
+        run: npm run build

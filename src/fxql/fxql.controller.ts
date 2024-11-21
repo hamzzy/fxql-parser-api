@@ -12,7 +12,6 @@ export class FxqlController {
     try {
       return await this.fxqlService.handleFXQL(fxqlDto.FXQL);
     } catch (error) {
-      // The error is already formatted by the service, so we can rethrow
       throw error;
     }
   }
