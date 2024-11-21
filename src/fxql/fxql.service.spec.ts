@@ -1,145 +1,153 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { FxqlService } from './fxql.service';
-// import { PrismaService } from '../database/prisma.service';
-// import { BadRequestException } from '@nestjs/common';
-// import { parseFXQLStatements } from './fxql.parser';
+import { Test, TestingModule } from '@nestjs/testing';
+import { FxqlService } from './fxql.service';
+import { PrismaService } from '../database/prisma.service';
+import { PinoLogger } from 'nestjs-pino';
+import { BadRequestException } from '@nestjs/common';
+import { parseFXQLStatements } from './fxql.parser';
 
-// jest.mock('./fxql.parser'); // Mock parseFXQLStatements
+jest.mock('./fxql.parser');
 
-// describe('FxqlService', () => {
-//   let service: FxqlService;
-//   let prismaService: PrismaService;
+describe('FxqlService', () => {
+  let service: FxqlService;
+  let prismaService: PrismaService;
+  let loggerMock: Partial<PinoLogger>;
 
-//   beforeEach(async () => {
-//     const prismaMock = {
-//       $transaction: jest.fn(), // Mock transaction method
-//       fXQLStatement: {
-//         createMany: jest.fn(), // Mock createMany method
-//       },
-//     };
+  beforeEach(async () => {
+    loggerMock = {
+      setContext: jest.fn(),
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    };
 
-//     const module: TestingModule = await Test.createTestingModule({
-//       providers: [
-//         FxqlService,
-//         {
-//           provide: PrismaService,
-//           useValue: prismaMock,
-//         },
-//       ],
-//     }).compile();
+    const prismaMock = {
+      $transaction: jest.fn(),
+      fXQLStatement: {
+        create: jest.fn(),
+      },
+    };
 
-//     service = module.get<FxqlService>(FxqlService);
-//     prismaService = module.get<PrismaService>(PrismaService);
-//   });
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        FxqlService,
+        {
+          provide: PrismaService,
+          useValue: prismaMock,
+        },
+        {
+          provide: PinoLogger,
+          useValue: loggerMock,
+        },
+      ],
+    }).compile();
 
-//   it('should be defined', () => {
-//     expect(service).toBeDefined();
-//   });
+    service = module.get<FxqlService>(FxqlService);
+    prismaService = module.get<PrismaService>(PrismaService);
+  });
 
-//   it('should throw an error if FXQL input is empty', async () => {
-//     await expect(service.handleFXQL('')).rejects.toThrow(BadRequestException);
-//   });
+  it('should throw an error for short FXQL input', async () => {
+    await expect(service.handleFXQL('short')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
 
-//   it('should throw an error if FXQL input parsing fails', async () => {
-//     (parseFXQLStatements as jest.Mock).mockReturnValue({
-//       success: [],
-//       errors: ['Invalid FXQL statement'],
-//     });
+  it('should throw an error if FXQL parsing fails', async () => {
+    (parseFXQLStatements as jest.Mock).mockReturnValue({
+      success: [],
+      errors: [{ line: 1, column: 1, error: 'Parse error' }],
+    });
 
-//     await expect(service.handleFXQL('INVALID FXQL')).rejects.toThrow(
-//       BadRequestException,
-//     );
-//   });
+    await expect(service.handleFXQL('INVALID FXQL')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
 
-//   it('should throw an error if more than 1000 statements are provided', async () => {
-//     (parseFXQLStatements as jest.Mock).mockReturnValue({
-//       success: new Array(1001).fill({
-//         baseCurrency: 'USD',
-//         quoteCurrency: 'EUR',
-//         buyAmount: { value: 1.1 },
-//       }),
-//       errors: [],
-//     });
+  it('should throw an error if more than 1000 statements are provided', async () => {
+    (parseFXQLStatements as jest.Mock).mockReturnValue({
+      success: new Array(1001).fill({
+        baseCurrency: 'USD',
+        quoteCurrency: 'EUR',
+        buyAmount: { value: 1.1 },
+      }),
+      errors: [],
+    });
 
-//     await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(
-//       BadRequestException,
-//     );
-//   });
+    await expect(service.handleFXQL('LARGE FXQL')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
 
-//   it('should save parsed statements to the database and return a success response', async () => {
-//     const mockParsedStatements = [
-//       {
-//         baseCurrency: 'USD',
-//         quoteCurrency: 'EUR',
-//         buyAmount: { value: 1.1 },
-//         sellAmount: { value: 1.2 },
-//         capAmount: null,
-//       },
-//     ];
+  it('should successfully process and save FXQL statements', async () => {
+    const mockParsedStatements = [
+      {
+        baseCurrency: 'USD',
+        quoteCurrency: 'EUR',
+        buyAmount: { value: 1.1 },
+        sellAmount: { value: 1.2 },
+        capAmount: { value: 10000 },
+      },
+    ];
 
-//     (parseFXQLStatements as jest.Mock).mockReturnValue({
-//       success: mockParsedStatements,
-//       errors: [],
-//     });
+    const mockSavedEntry = {
+      id: 'test-uuid',
+      sourceCurrency: 'USD',
+      destinationCurrency: 'EUR',
+      buyPrice: 1.1,
+      sellPrice: 1.2,
+      capAmount: 10000,
+    };
 
-//     // Mock transaction and database interaction
-//     (prismaService.$transaction as jest.Mock).mockImplementation(
-//       async (callback) => callback(prismaService),
-//     );
-//     (prismaService.fXQLStatement.createMany as jest.Mock).mockResolvedValueOnce(
-//       undefined,
-//     );
+    // Mock parsing
+    (parseFXQLStatements as jest.Mock).mockReturnValue({
+      success: mockParsedStatements,
+      errors: [],
+    });
 
-//     const result = await service.handleFXQL('VALID FXQL');
-//     expect(result).toEqual({
-//       message: 'FXQL Statement Parsed Successfully.',
-//       code: 'FXQL-200',
-//       data: [
-//         {
-//           sourceCurrency: 'USD',
-//           destinationCurrency: 'EUR',
-//           buyPrice: 1.1,
-//           sellPrice: 1.2,
-//           capAmount: null,
-//         },
-//       ],
-//     });
-//     expect(prismaService.fXQLStatement.createMany).toHaveBeenCalledWith({
-//       data: [
-//         {
-//           sourceCurrency: 'USD',
-//           destinationCurrency: 'EUR',
-//           buyPrice: 1.1,
-//           sellPrice: 1.2,
-//           capAmount: null,
-//         },
-//       ],
-//     });
-//   });
+    // Mock database transaction
+    (prismaService.$transaction as jest.Mock).mockImplementation(async (fn) => {
+      return fn({
+        fXQLStatement: {
+          create: jest.fn().mockResolvedValue(mockSavedEntry),
+        },
+      });
+    });
 
-//   it('should throw an error if saving to the database fails', async () => {
-//     const mockParsedStatements = [
-//       {
-//         baseCurrency: 'USD',
-//         quoteCurrency: 'EUR',
-//         buyAmount: { value: 1.1 },
-//       },
-//     ];
+    const result = await service.handleFXQL('VALID FXQL');
 
-//     (parseFXQLStatements as jest.Mock).mockReturnValue({
-//       success: mockParsedStatements,
-//       errors: [],
-//     });
+    expect(result.code).toBe('FXQL-201');
+    expect(result.message).toBe('FXQL Statement Parsed Successfully.');
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0]).toEqual({
+      EntryId: 'test-uuid',
+      SourceCurrency: 'USD',
+      DestinationCurrency: 'EUR',
+      BuyPrice: 1.1,
+      SellPrice: 1.2,
+      CapAmount: 10000,
+    });
+  });
 
-//     // Mock transaction to simulate a database error
-//     (prismaService.$transaction as jest.Mock).mockImplementationOnce(
-//       async () => {
-//         throw new Error('Database error');
-//       },
-//     );
+  it('should handle database save errors', async () => {
+    const mockParsedStatements = [
+      {
+        baseCurrency: 'USD',
+        quoteCurrency: 'EUR',
+        buyAmount: { value: 1.1 },
+      },
+    ];
 
-//     await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(
-//       BadRequestException,
-//     );
-//   });
-// });
+    (parseFXQLStatements as jest.Mock).mockReturnValue({
+      success: mockParsedStatements,
+      errors: [],
+    });
+
+    // Simulate database error
+    (prismaService.$transaction as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await expect(service.handleFXQL('VALID FXQL')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+});
